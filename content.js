@@ -1,9 +1,25 @@
 console.log('Website is fully loaded.');
+function copyTextToClipboard() {
+    const textToCopy = "This is the text to copy"; // Thay đổi văn bản này theo ý muốn
+    navigator.clipboard.writeText(textToCopy).then(() => {
+        alert("Text copied to clipboard: " + textToCopy);
+    }).catch(err => {
+        console.error('Failed to copy text: ', err);
+    });
+}
 switch (true) {
     case window.location.hostname.includes('etsy.com') && window.location.pathname.includes('/listing/'): {
         const details = getProductDetailsFromEtsy();
-        console.log({ details });
-        // todo: store to ram memory
+        const textToCopy = JSON.stringify(details);
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            console.log("Text copied to clipboard: ");
+
+            // Close current tab after copied successfully
+            chrome.runtime.sendMessage({ action: "closeTab" });
+        }).catch(err => {
+            console.error('Failed to copy text: ', err);
+        });
+
         break;
     }
     case window.location.hostname.includes('amazon.com') && window.location.pathname.includes('/dp/'): {
