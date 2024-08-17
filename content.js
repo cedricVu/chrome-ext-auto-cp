@@ -57,10 +57,10 @@ function getProductDetailsFromEtsy() {
     const images = Array.from(document.querySelectorAll('ul[data-carousel-pane-list] img')).map(img => img.src);
 
     return {
-        title,
-        highlights,
-        description,
-        images
+        productTitle: title,
+        productDescription: description,
+        productHighlights: highlights,
+        productImages: images
     };
 }
 
@@ -97,13 +97,13 @@ function getAmazonProductDetails() {
     });
     let aboutThisItem = aboutThisItemArray.join(' ');
     return {
-        title,
-        description: `
+        productTitle: title,
+        productDescription: `
             Description: ${description}.
             Detail: ${productDetails}.
             About item: ${aboutThisItem}
         `,
-        images
+        productImages: images
     };
 }
 
