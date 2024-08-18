@@ -1,42 +1,39 @@
 console.log('Website is fully loaded.');
-function copyTextToClipboard() {
-    const textToCopy = "This is the text to copy"; // Thay đổi văn bản này theo ý muốn
+
+function copyDetailsToClipboardAndCloseTab(details) {
+    const textToCopy = JSON.stringify(details);
     navigator.clipboard.writeText(textToCopy).then(() => {
-        alert("Text copied to clipboard: " + textToCopy);
+        console.log("Text copied to clipboard: ");
+        // Close current tab after copied successfully
+        chrome.runtime.sendMessage({ action: "closeTab" });
     }).catch(err => {
         console.error('Failed to copy text: ', err);
     });
 }
+
 switch (true) {
     case window.location.hostname.includes('etsy.com') && window.location.pathname.includes('/listing/'): {
         const details = getProductDetailsFromEtsy();
-        const textToCopy = JSON.stringify(details);
-        navigator.clipboard.writeText(textToCopy).then(() => {
-            console.log("Text copied to clipboard: ");
-
-            // Close current tab after copied successfully
-            chrome.runtime.sendMessage({ action: "closeTab" });
-        }).catch(err => {
-            console.error('Failed to copy text: ', err);
-        });
-
+        copyDetailsToClipboardAndCloseTab(details);
         break;
     }
     case window.location.hostname.includes('amazon.com') && window.location.pathname.includes('/dp/'): {
         const details = getAmazonProductDetails();
-        // todo: store to ram memory
-
+        copyDetailsToClipboardAndCloseTab(details);
         break;
     }
     case window.location.hostname.includes('alibaba.com') && window.location.pathname.includes('/product-detail/'): {
-        console.log('Todo...');
-        // return sendResponse('Todo...');
         // const details = getAlibabaProductDetails();
-        // todo: store to ram memory
-        // break;
+        // console.log({details})
+        break;
+    }
+    case window.location.hostname.includes('ebay.com') && window.location.pathname.includes('/itm/'): {
+        const details = getEBayProductDetails();
+        copyDetailsToClipboardAndCloseTab(details);
+        break;
     }
     default: {
-        sendResponse("Please go to the detail product page of Etsy, amazon, Alibaba");
+        console.log("Please go to the detail product page of Etsy, amazon, Alibaba, ebay");
     }
 }
 
@@ -55,12 +52,14 @@ function getProductDetailsFromEtsy() {
     }
     const description = document.querySelector('p[data-product-details-description-text-content]').innerText;
     const images = Array.from(document.querySelectorAll('ul[data-carousel-pane-list] img')).map(img => img.src);
+    const videos = Array.from(document.querySelectorAll('ul video source')).map(vid => vid.src);
 
     return {
         productTitle: title,
         productDescription: description,
         productHighlights: highlights,
-        productImages: images
+        productImages: images,
+        productVideo: videos,
     };
 }
 
@@ -96,6 +95,10 @@ function getAmazonProductDetails() {
         }
     });
     let aboutThisItem = aboutThisItemArray.join(' ');
+
+    let videoElements = document.querySelectorAll('.video-js video');
+    const videos = Array.from(videoElements).map(vid => vid.src);
+
     return {
         productTitle: title,
         productDescription: `
@@ -103,7 +106,8 @@ function getAmazonProductDetails() {
             Detail: ${productDetails}.
             About item: ${aboutThisItem}
         `,
-        productImages: images
+        productImages: images,
+        productVideos: videos,
     };
 }
 
@@ -120,4 +124,42 @@ function getAlibabaProductDetails() {
         description,
         images
     };
+}
+
+function getEBayProductDetails() {
+    const title = document.querySelector('.x-item-title__mainTitle span')?.innerText?.trim() || 'No Title Found';
+
+    const itemSpecifics = {};
+    const specificsRows = document.querySelectorAll('dl[data-testid="ux-labels-values"]');
+    specificsRows.forEach(row => {
+        const labelElement = row.querySelector('dt .ux-textspans');
+        const valueElement = row.querySelector('dd .ux-textspans');
+        if (labelElement && valueElement) {
+            const label = labelElement.textContent.trim();
+            const value = valueElement.textContent.trim();
+            itemSpecifics[label] = value;
+        }
+    });
+
+    const cols = document.querySelectorAll('.ux-layout-section-evo__col');
+    let productInfo = {};
+    cols.forEach(row => {
+        const labelElement = row.querySelector('.ux-labels-values__labels-content span');
+        const valueElement = row.querySelector('.ux-labels-values__values-content span');
+        const label = labelElement ? labelElement.textContent.trim() : null;
+        const value = valueElement ? valueElement.textContent.trim() : null;
+        if (label && value) {
+            productInfo[label] = value;
+        }
+    });
+
+    const imagesTag = document.querySelectorAll('[data-testid="ux-image-carousel-container"] img');
+    const images = Array.from(imagesTag).map(imageTag => {
+        if (imageTag.currentSrc) {
+            return imageTag.currentSrc;
+        }
+        return '';
+    }).filter(item => !!item);
+
+    return { productTitle: title, itemSpecifics, productInfo, productImages: images };
 }

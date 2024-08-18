@@ -3,7 +3,13 @@
   "name": "Auto Run Extension",
   "version": "1.0",
   "description": "Runs a script automatically when the website is fully loaded.",
-  "permissions": ["tabs", "activeTab", "scripting", "clipboardWrite"],
+  "permissions": [
+    "tabs",
+    "activeTab",
+    "scripting",
+    "clipboardWrite",
+    "webRequestBlocking"
+  ],
   "background": {
     "service_worker": "background.js"
   },
