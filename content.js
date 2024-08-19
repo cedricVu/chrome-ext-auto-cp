@@ -1,6 +1,13 @@
 console.log('Website is fully loaded.');
 
 function copyDetailsToClipboardAndCloseTab(details) {
+    const currentUrl = window.location.href;
+    const url = new URL(currentUrl);
+    const params = new URLSearchParams(url.search);
+    if (params.get('source') !== 'tts') {
+        return;
+    }
+
     const textToCopy = JSON.stringify(details);
     navigator.clipboard.writeText(textToCopy).then(() => {
         console.log("Text copied to clipboard: ");
