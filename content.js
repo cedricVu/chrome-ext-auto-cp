@@ -14,7 +14,7 @@ function copyDetailsToClipboardAndCloseTab(details) {
         // Close current tab after copied successfully
         chrome.runtime.sendMessage({ action: "closeTab" });
     }).catch(err => {
-        console.error('Failed to copy text: ', err);
+        console.log('Failed to copy text: ', err);
     });
 }
 
