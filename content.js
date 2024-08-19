@@ -76,7 +76,7 @@ function getAmazonProductDetails() {
     let images = [];
 
     // Collect all product images (thumbnails)
-    let imageElements = document.querySelectorAll('#altImages img');
+    let imageElements = document.querySelectorAll('#imgTagWrapperId img');
     if (imageElements.length === 0) {
         imageElements = document.querySelectorAll('#imgTagWrapperId img');
     }
